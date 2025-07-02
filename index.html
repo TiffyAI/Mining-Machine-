@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>TiffyAI Miner</title>
+  <style>
+    body {
+      font-family: 'Orbitron', sans-serif;
+      background: linear-gradient(to right, #0a0f2c, #1c1f4a);
+      color: #00ffe1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    h1 {
+      font-size: 2em;
+      margin-bottom: 20px;
+    }
+    .counter {
+      font-size: 2.5em;
+      margin: 20px 0;
+      color: #00ff99;
+      text-shadow: 0 0 5px #00ff99;
+    }
+    button {
+      background: rgba(0, 255, 200, 0.1);
+      border: 2px solid #00ffe1;
+      color: #00ffe1;
+      font-size: 1em;
+      padding: 12px 20px;
+      margin: 10px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+    button:hover {
+      background: #00ffe1;
+      color: #0a0f2c;
+    }
+    .withdraw-ready {
+      box-shadow: 0 0 20px #ffd700, 0 0 40px #ffd700;
+      border-color: #ffd700;
+      color: #ffd700;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>⛏️ TiffyAI Miner</h1>
+  <div class="counter" id="tiffyCount">0.0000001 TIFFY</div>
+
+  <button id="withdrawBtn" disabled>Withdraw</button>
+  <button id="boostBtn">Buy Mining Power</button>
+
+  <script>
+    let tiffy = 0.0000001;
+    let speed = 0.00000005; // normal mining rate
+    const counter = document.getElementById('tiffyCount');
+    const withdrawBtn = document.getElementById('withdrawBtn');
+
+    function updateMiner() {
+      tiffy += speed;
+      counter.textContent = tiffy.toFixed(7) + " TIFFY";
+
+      if (tiffy >= 10) {
+        withdrawBtn.disabled = false;
+        withdrawBtn.classList.add('withdraw-ready');
+      }
+    }
+
+    // Mine every 300ms
+    setInterval(updateMiner, 300);
+
+    withdrawBtn.addEventListener('click', () => {
+      alert(`Withdrawing ${tiffy.toFixed(4)} TIFFY!`);
+      // TODO: Connect logic here (claim, wallet interaction)
+      tiffy = 0.0000001;
+      withdrawBtn.disabled = true;
+      withdrawBtn.classList.remove('withdraw-ready');
+    });
+
+    boostBtn.addEventListener('click', () => {
+      // Just for preview – speeds up mining
+      speed += 0.0000001;
+      alert('Mining power increased! (You will charge later)');
+    });
+  </script>
+</body>
+</html>
