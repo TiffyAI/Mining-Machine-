@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>TiffyAI Miner</title>
+  <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+  <script src="https://unpkg.com/@walletconnect/web3-provider@1.7.8/dist/umd/index.min.js"></script>
+  <script src="https://unpkg.com/web3modal"></script>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100%;
+      width: 100%;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      color: #00ffe7;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: black;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-top: 40px;
+      text-shadow: 0 0 10px #00ffe7;
+    }
+
+    #tiffyCounter {
+      font-size: 2rem;
+      margin: 20px 0;
+      text-shadow: 0 0 5px #00ffe7;
+    }
+
+    button {
+      background: #00ffe7;
+      color: #000;
+      border: none;
+      padding: 15px 30px;
+      margin: 10px;
+      font-size: 1.1rem;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+
+    button:hover {
+      background: #00c6b0;
+    }
+
+    #claimBtn:disabled {
+      background: gray;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🛠 TiffyAI Miner</h1>
+  <div id="tiffyCounter">⛏️ 0.0000000 TIFFY</div>
+  <button id="connectBtn">🔌 Connect Wallet</button>
+  <button id="claimBtn" disabled>💰 Claim 1 TIFFY</button>
+
+  <script>
+    const CONTRACT_ADDRESS = "0xE488253DD6B4D31431142F1b7601C96f24Fb7dd5";
+    const ABI = [{ "type": "function", "name": "claim", "stateMutability": "payable", "inputs": [], "outputs": [] }];
+
+    let web3;
+    let account;
+    let contract;
+
+    const COUNTER_KEY = 'tiffy_miner_balance';
+    const LAST_CLAIM_KEY = 'tiffy_last_claim';
+
+    let balance = parseFloat(localStorage.getItem(COUNTER_KEY)) || 0;
+    let miningSpeed = 0.0000001;
+    const threshold = 1;
+    const cooldown = 24 * 60 * 60 * 1000; // 24 hours
+
+    const tiffyCounter = document.getElementById('tiffyCounter');
+    const connectBtn = document.getElementById('connectBtn');
+    const claimBtn = document.getElementById('claimBtn');
+
+    function updateDisplay() {
+      tiffyCounter.textContent = `⛏️ ${balance.toFixed(7)} TIFFY`;
+      const lastClaim = localStorage.getItem(LAST_CLAIM_KEY);
+      const canClaim = balance >= threshold && (!lastClaim || Date.now() - parseInt(lastClaim) > cooldown);
+      claimBtn.disabled = !canClaim;
+    }
+
+    setInterval(() => {
+      const lastClaim = localStorage.getItem(LAST_CLAIM_KEY);
+      const cooldownPassed = !lastClaim || Date.now() - parseInt(lastClaim) > cooldown;
+
+      if (balance < threshold && cooldownPassed) {
+        balance += miningSpeed;
+        localStorage.setItem(COUNTER_KEY, balance);
+        updateDisplay();
+      }
+    }, 1000);
+
+    async function connectWallet() {
+      const providerOptions = {
+        walletconnect: {
+          package: window.WalletConnectProvider.default,
+          options: {
+            rpc: {
+              56: "https://bsc-dataseed.binance.org/"
+            },
+            network: "binance",
+          }
+        }
+      };
+
+      const web3Modal = new window.Web3Modal.default({
+        cacheProvider: true,
+        providerOptions
+      });
+
+      const instance = await web3Modal.connect();
+      web3 = new Web3(instance);
+
+      const accounts = await web3.eth.getAccounts();
+      account = accounts[0];
+      contract = new web3.eth.Contract(ABI, CONTRACT_ADDRESS);
+
+      connectBtn.innerText = `✅ Connected: ${account.slice(0, 6)}...`;
+      updateDisplay();
+    }
+
+    async function claimTiffy() {
+      if (!contract || !account) return alert("Please connect wallet first.");
+
+      try {
+        await contract.methods.claim().send({
+          from: account,
+          value: web3.utils.toWei("0.0002", "ether") // Fee to claim
+        });
+
+        alert("🎉 1 TIFFY claimed successfully!");
+        localStorage.setItem(COUNTER_KEY, 0);
+        localStorage.setItem(LAST_CLAIM_KEY, Date.now());
+        balance = 0;
+        updateDisplay();
+      } catch (err) {
+        console.error(err);
+        alert("❌ Claim failed. Make sure you have 0.0002 BNB and 24h has passed.");
+      }
+    }
+
+    connectBtn.addEventListener('click', connectWallet);
+    claimBtn.addEventListener('click', claimTiffy);
+
+    updateDisplay();
+  </script>
+
+</body>
+</html>
