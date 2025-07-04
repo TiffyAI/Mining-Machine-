@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>TiffyAI Miner</title>
+  <style>
+    body {
+      background: radial-gradient(circle at center, #001F3F, #000);
+      font-family: 'Segoe UI', sans-serif;
+      color: #00ffe7;
+      text-align: center;
+      padding-top: 100px;
+    }
+    h1 {
+      font-size: 2.5rem;
+    }
+    #tiffyCounter {
+      font-size: 2rem;
+      margin: 20px 0;
+    }
+    button {
+      background: #00ffe7;
+      color: #000;
+      border: none;
+      padding: 15px 30px;
+      margin: 10px;
+      font-size: 1.1rem;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+    button:hover {
+      background: #00c6b0;
+    }
+    #withdrawBtn:disabled {
+      background: gray;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🛠 TiffyAI Miner</h1>
+  <div id="tiffyCounter">⛏️ 0.0000000 TIFFY</div>
+  <button id="withdrawBtn" disabled>💸 Withdraw</button>
+  <button id="boostBtn">⚡ Buy Mining Power</button>
+
+  <script>
+    const COUNTER_KEY = 'tiffy_balance';
+    const SPEED_KEY = 'tiffy_speed';
+
+    let balance = parseFloat(localStorage.getItem(COUNTER_KEY)) || 0;
+    let miningSpeed = parseFloat(localStorage.getItem(SPEED_KEY)) || 0.0000001;
+
+    const counterEl = document.getElementById('tiffyCounter');
+    const withdrawBtn = document.getElementById('withdrawBtn');
+    const boostBtn = document.getElementById('boostBtn');
+
+    function updateDisplay() {
+      counterEl.textContent = `⛏️ ${balance.toFixed(7)} TIFFY`;
+      withdrawBtn.disabled = balance < 1;
+    }
+
+    // Miner loop
+    setInterval(() => {
+      balance += miningSpeed;
+      localStorage.setItem(COUNTER_KEY, balance);
+      updateDisplay();
+    }, 1000);
+
+    withdrawBtn.addEventListener('click', () => {
+      if (balance >= 1) {
+        alert(`💰 You have withdrawn ${balance.toFixed(7)} TIFFY!`);
+        balance = 0;
+        localStorage.setItem(COUNTER_KEY, balance);
+        updateDisplay();
+      }
+    });
+
+    boostBtn.addEventListener('click', () => {
+      // Stub: Replace this logic with your token payment flow
+      miningSpeed *= 2;
+      alert("⚡ Mining Power Upgraded!");
+      localStorage.setItem(SPEED_KEY, miningSpeed);
+    });
+
+    // On load
+    updateDisplay();
+  </script>
+
+</body>
+</html>
