@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>TiffyAI Miner</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100%;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    #fallbackBackground {
+      background-image: url('miner.jpg');
+      background-size: 90%; /* You can adjust this % to make smaller/larger */
+      background-repeat: no-repeat;
+      background-position: center;
+      background-attachment: fixed;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -2;
+      opacity: 0.95; /* Optional fade effect */
+    }
+
+    #videoBackground {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      z-index: -1;
+      display: none;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      top: 20%;
+      color: white;
+    }
+
+    .counter {
+      font-size: 3em;
+      margin-bottom: 20px;
+    }
+
+    .button {
+      padding: 15px 30px;
+      font-size: 18px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      margin: 10px;
+      color: #fff;
+      background: linear-gradient(90deg, #00c6ff, #0072ff);
+      box-shadow: 0 0 15px #00f0ff;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="fallbackBackground"></div>
+  <video id="videoBackground" autoplay muted loop></video>
+
+  <div class="container">
+    <div class="counter" id="tiffyCounter">Mining: 0.0000001 TIFFY</div>
+    <button class="button" onclick="upgradeMiner()">Buy Mining Power</button>
+    <button class="button" onclick="withdraw()">Withdraw</button>
+  </div>
+
+  <script>
+    let tiffy = parseFloat(localStorage.getItem('tiffy') || '0.0000001');
+    let speed = parseFloat(localStorage.getItem('speed') || '0.0000001');
+    const counter = document.getElementById('tiffyCounter');
+    const video = document.getElementById('videoBackground');
+    const fallback = document.getElementById('fallbackBackground');
+
+    function updateCounter() {
+      tiffy += speed;
+      counter.innerText = `Mining: ${tiffy.toFixed(7)} TIFFY`;
+      localStorage.setItem('tiffy', tiffy);
+    }
+
+    setInterval(updateCounter, 1000);
+
+    function upgradeMiner() {
+      speed *= 2;
+      localStorage.setItem('speed', speed);
+      playVideo('upgrade.mp4', 3000);
+    }
+
+    function withdraw() {
+      if (tiffy >= 1) {
+        playVideo('withdraw.mp4', 3000);
+        tiffy = 0.0000001;
+        localStorage.setItem('tiffy', tiffy);
+      } else {
+        alert("You need at least 1 TIFFY to withdraw.");
+      }
+    }
+
+    function playVideo(src, duration) {
+      video.src = src;
+      video.style.display = 'block';
+      fallback.style.display = 'none';
+      setTimeout(() => {
+        video.style.display = 'none';
+        fallback.style.display = 'block';
+      }, duration);
+    }
+
+    // Start mining animation if > 0
+    window.onload = () => {
+      if (tiffy > 0.0000001) {
+        playVideo('mine.mp4', 9999999); // Keeps looping while mining
+      }
+    };
+  </script>
+</body>
+</html>
