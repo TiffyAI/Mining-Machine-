@@ -22,7 +22,27 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: black;
+      z-index: 1;
+    }
+
+    #backgroundVideo {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 97vh;
+      object-fit: cover;
+      z-index: -1;
+    }
+
+    #fallbackBackground {
+      background-image: url('miner.jpg');
+      background-size: cover;
+      background-position: center;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 97%;
+      z-index: -2;
     }
 
     h1 {
@@ -53,7 +73,7 @@
       background: #00c6b0;
     }
 
-    #claimBtn:disabled {
+    #withdrawBtn:disabled {
       background: gray;
       cursor: not-allowed;
     }
@@ -61,38 +81,57 @@
 </head>
 <body>
 
+  <div id="fallbackBackground"></div>
+  <video id="backgroundVideo" autoplay muted loop playsinline>
+    <source src="mine.mp4" type="video/mp4">
+  </video>
+
   <h1>🛠 TiffyAI Miner</h1>
   <div id="tiffyCounter">⛏️ 0.0000000 TIFFY</div>
   <button id="connectBtn">🔌 Connect Wallet</button>
-  <button id="claimBtn" disabled>💰 Claim 1 TIFFY</button>
+  <button id="withdrawBtn" disabled>💸 Withdraw</button>
+  <button id="boostBtn">⚡ Buy Mining Power</button>
 
   <script>
     const CONTRACT_ADDRESS = "0xE488253DD6B4D31431142F1b7601C96f24Fb7dd5";
     const ABI = [{ "type": "function", "name": "claim", "stateMutability": "payable", "inputs": [], "outputs": [] }];
-
-    let web3;
-    let account;
-    let contract;
-
-    const COUNTER_KEY = 'tiffy_miner_balance';
+    const COUNTER_KEY = 'tiffy_balance';
+    const SPEED_KEY = 'tiffy_speed';
     const LAST_CLAIM_KEY = 'tiffy_last_claim';
+    const threshold = 1;
+    const cooldown = 24 * 60 * 60 * 1000;
 
     let balance = parseFloat(localStorage.getItem(COUNTER_KEY)) || 0;
-    let miningSpeed = 0.0000001;
-    const threshold = 1;
-    const cooldown = 24 * 60 * 60 * 1000; // 24 hours
+    let miningSpeed = parseFloat(localStorage.getItem(SPEED_KEY)) || 0.0000001;
+    let web3, account, contract;
 
-    const tiffyCounter = document.getElementById('tiffyCounter');
+    const counterEl = document.getElementById('tiffyCounter');
+    const withdrawBtn = document.getElementById('withdrawBtn');
+    const boostBtn = document.getElementById('boostBtn');
     const connectBtn = document.getElementById('connectBtn');
-    const claimBtn = document.getElementById('claimBtn');
+    const bgVideo = document.getElementById('backgroundVideo');
 
     function updateDisplay() {
-      tiffyCounter.textContent = `⛏️ ${balance.toFixed(7)} TIFFY`;
+      counterEl.textContent = `⛏️ ${balance.toFixed(7)} TIFFY`;
       const lastClaim = localStorage.getItem(LAST_CLAIM_KEY);
       const canClaim = balance >= threshold && (!lastClaim || Date.now() - parseInt(lastClaim) > cooldown);
-      claimBtn.disabled = !canClaim;
+      withdrawBtn.disabled = !canClaim;
     }
 
+    function setBackgroundVideo(source, isLoop = true, duration = null) {
+      bgVideo.loop = isLoop;
+      bgVideo.src = source;
+      bgVideo.load();
+      bgVideo.play();
+
+      if (!isLoop && duration) {
+        setTimeout(() => {
+          setBackgroundVideo('mine.mp4', true);
+        }, duration);
+      }
+    }
+
+    // Miner loop
     setInterval(() => {
       const lastClaim = localStorage.getItem(LAST_CLAIM_KEY);
       const cooldownPassed = !lastClaim || Date.now() - parseInt(lastClaim) > cooldown;
@@ -104,7 +143,16 @@
       }
     }, 1000);
 
-    async function connectWallet() {
+    // Boost button
+    boostBtn.addEventListener('click', () => {
+      miningSpeed *= 2;
+      alert("⚡ Mining Power Upgraded!");
+      localStorage.setItem(SPEED_KEY, miningSpeed);
+      setBackgroundVideo('upgrade.mp4', false, 3000);
+    });
+
+    // Connect wallet
+    connectBtn.addEventListener('click', async () => {
       const providerOptions = {
         walletconnect: {
           package: window.WalletConnectProvider.default,
@@ -124,40 +172,37 @@
 
       const instance = await web3Modal.connect();
       web3 = new Web3(instance);
-
       const accounts = await web3.eth.getAccounts();
       account = accounts[0];
       contract = new web3.eth.Contract(ABI, CONTRACT_ADDRESS);
 
-      connectBtn.innerText = `✅ Connected: ${account.slice(0, 6)}...`;
-      updateDisplay();
-    }
+      connectBtn.innerText = `✅ ${account.slice(0, 6)}...Connected`;
+    });
 
-    async function claimTiffy() {
-      if (!contract || !account) return alert("Please connect wallet first.");
+    // Withdraw (Claim)
+    withdrawBtn.addEventListener('click', async () => {
+      if (!contract || !account) return alert("❌ Please connect your wallet first.");
 
       try {
         await contract.methods.claim().send({
           from: account,
-          value: web3.utils.toWei("0.0002", "ether") // Fee to claim
+          value: web3.utils.toWei("0.0002", "ether") // Adjust fee if needed
         });
 
-        alert("🎉 1 TIFFY claimed successfully!");
+        alert(`💰 1 TIFFY Claimed!`);
+        setBackgroundVideo('withdraw.mp4', false, 3000);
         localStorage.setItem(COUNTER_KEY, 0);
         localStorage.setItem(LAST_CLAIM_KEY, Date.now());
         balance = 0;
         updateDisplay();
       } catch (err) {
         console.error(err);
-        alert("❌ Claim failed. Make sure you have 0.0002 BNB and 24h has passed.");
+        alert("❌ Claim failed: Make sure you have enough BNB and 24h cooldown passed.");
       }
-    }
-
-    connectBtn.addEventListener('click', connectWallet);
-    claimBtn.addEventListener('click', claimTiffy);
+    });
 
     updateDisplay();
+    setBackgroundVideo('mine.mp4', true);
   </script>
-
 </body>
 </html>
