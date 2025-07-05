@@ -83,7 +83,6 @@
   <button id="withdrawBtn" disabled>💸 Withdraw</button>
   <button id="boostBtn">⚡ Upgrade With Key</button>
 
-  <!-- Load WalletKit as module -->
   <script type="module">
     import { WalletKit } from 'https://esm.sh/@reown/walletkit';
 
@@ -125,9 +124,7 @@
     });
 
     walletKit.on("disconnected", () => {
-      web3 = null;
       account = null;
-      contract = null;
       connectBtn.innerText = "🔌 Connect Wallet";
     });
 
@@ -147,6 +144,7 @@
           from: account,
           value: web3.utils.toWei("0.00086", "ether")
         });
+
         alert(`💰 1 TIFFY Claimed!`);
         setBackgroundVideo('withdraw.mp4', false, 3000);
         balance = 0;
@@ -155,8 +153,24 @@
         updateTiffyDisplay();
       } catch (err) {
         console.error(err);
-        alert("❌ Claim failed. Check cooldown and gas.");
+        alert("❌ Claim failed. Make sure cooldown passed and you have enough BNB.");
       }
+    });
+
+    boostBtn.addEventListener('click', () => {
+      let blue = parseInt(localStorage.getItem('tiffyBlueKeys')) || 0;
+      if (blue < 1) {
+        alert("❌ Not enough Blue Keys.");
+        return;
+      }
+
+      blue--;
+      miningSpeed *= 2;
+      alert("⚡ Mining Power Boosted!");
+      localStorage.setItem('tiffyBlueKeys', blue);
+      localStorage.setItem(SPEED_KEY, miningSpeed);
+      setBackgroundVideo('upgrade.mp4', false, 3000);
+      updateKeyDisplay();
     });
 
     function updateKeyDisplay() {
@@ -193,24 +207,12 @@
       }
     }, 1000);
 
-    boostBtn.addEventListener('click', () => {
-      let blue = parseInt(localStorage.getItem('tiffyBlueKeys')) || 0;
-      if (blue < 1) {
-        alert("❌ Not enough Blue Keys.");
-        return;
-      }
-      blue--;
-      miningSpeed *= 2;
-      alert("⚡ Mining Power Boosted!");
-      localStorage.setItem('tiffyBlueKeys', blue);
-      localStorage.setItem(SPEED_KEY, miningSpeed);
-      setBackgroundVideo('upgrade.mp4', false, 3000);
-      updateKeyDisplay();
-    });
-
     updateKeyDisplay();
     updateTiffyDisplay();
     setBackgroundVideo('mine.mp4', true);
   </script>
+
+  <!-- Load Web3.js for smart contract usage -->
+  <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
 </body>
 </html>
