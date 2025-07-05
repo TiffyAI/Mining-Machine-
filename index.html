@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <title>TiffyAI Miner</title>
+  <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+  <script src="https://unpkg.com/@walletconnect/core@2.6.4/dist/umd/index.min.js"></script>
+  <script src="https://unpkg.com/@reown/walletkit@1.0.14/dist/umd/index.js"></script>
   <style>
     html, body {
       margin: 0; padding: 0;
@@ -14,7 +17,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      background-color: #000;
+      background: black;
     }
 
     #backgroundVideo {
@@ -84,9 +87,7 @@
   <button id="withdrawBtn" disabled>💸 Withdraw</button>
   <button id="boostBtn">⚡ Upgrade With Key</button>
 
-  <script type="module">
-    import { connectWallet } from './src/wallet.js'
-
+  <script>
     const CONTRACT_ADDRESS = "0xE488253DD6B4D31431142F1b7601C96f24Fb7dd5";
     const ABI = [{ "type": "function", "name": "claim", "stateMutability": "payable", "inputs": [], "outputs": [] }];
 
@@ -155,12 +156,33 @@
     });
 
     connectBtn.addEventListener('click', async () => {
-      const result = await connectWallet()
-      if (!result) return
-      web3 = result.web3
-      account = result.account
-      connectBtn.innerText = `✅ ${account.slice(0, 6)}...Connected`
-      contract = new web3.eth.Contract(ABI, CONTRACT_ADDRESS)
+      const core = new window.WalletConnectCore.Core({
+        projectId: 'bf40c7dcdb05f06f2769573103007576'
+      });
+
+      const metadata = {
+        name: 'TiffyAI Miner',
+        description: 'Mine TiffyAI and Claim your rewards',
+        url: 'https://tiffyai.github.io',
+        icons: ['https://tiffyai.github.io/icon.png']
+      };
+
+      const walletKit = await window.ReownWalletKit.WalletKit.init({
+        core,
+        metadata
+      });
+
+      try {
+        const provider = await walletKit.connect();
+        web3 = new Web3(provider);
+        const accounts = await web3.eth.getAccounts();
+        account = accounts[0];
+        contract = new web3.eth.Contract(ABI, CONTRACT_ADDRESS);
+        connectBtn.innerText = `✅ ${account.slice(0, 6)}...Connected`;
+      } catch (e) {
+        alert("❌ Wallet connection failed.");
+        console.error(e);
+      }
     });
 
     withdrawBtn.addEventListener('click', async () => {
@@ -170,6 +192,7 @@
           from: account,
           value: web3.utils.toWei("0.00086", "ether")
         });
+
         alert(`💰 1 TIFFY Claimed!`);
         setBackgroundVideo('withdraw.mp4', false, 3000);
         balance = 0;
