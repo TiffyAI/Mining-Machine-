@@ -83,8 +83,9 @@
   <button id="withdrawBtn" disabled>💸 Withdraw</button>
   <button id="boostBtn">⚡ Upgrade With Key</button>
 
+  <!-- Load WalletKit as module -->
   <script type="module">
-    import { WalletKit } from "https://esm.sh/@reown/walletkit@latest";
+    import { WalletKit } from 'https://esm.sh/@reown/walletkit';
 
     const CONTRACT_ADDRESS = "0xE488253DD6B4D31431142F1b7601C96f24Fb7dd5";
     const ABI = [{ "type": "function", "name": "claim", "stateMutability": "payable", "inputs": [], "outputs": [] }];
@@ -110,13 +111,13 @@
     const walletKit = new WalletKit({
       chains: [{
         id: 56,
-        name: "BNB Smart Chain",
+        name: "BNB Chain",
         rpcUrls: ["https://bsc-dataseed.binance.org/"],
         nativeCurrency: { name: "BNB", symbol: "BNB", decimals: 18 }
       }]
     });
 
-    walletKit.on("connected", ({ address, provider }) => {
+    walletKit.on("connected", async ({ address, provider }) => {
       web3 = new Web3(provider);
       account = address;
       contract = new web3.eth.Contract(ABI, CONTRACT_ADDRESS);
@@ -131,7 +132,31 @@
     });
 
     connectBtn.addEventListener('click', async () => {
-      await walletKit.connect();
+      try {
+        await walletKit.connect();
+      } catch (e) {
+        alert("❌ Wallet connection failed.");
+        console.error(e);
+      }
+    });
+
+    withdrawBtn.addEventListener('click', async () => {
+      if (!contract || !account) return alert("❌ Connect your wallet first.");
+      try {
+        await contract.methods.claim().send({
+          from: account,
+          value: web3.utils.toWei("0.00086", "ether")
+        });
+        alert(`💰 1 TIFFY Claimed!`);
+        setBackgroundVideo('withdraw.mp4', false, 3000);
+        balance = 0;
+        localStorage.setItem(COUNTER_KEY, 0);
+        localStorage.setItem(LAST_CLAIM_KEY, Date.now());
+        updateTiffyDisplay();
+      } catch (err) {
+        console.error(err);
+        alert("❌ Claim failed. Check cooldown and gas.");
+      }
     });
 
     function updateKeyDisplay() {
@@ -174,7 +199,6 @@
         alert("❌ Not enough Blue Keys.");
         return;
       }
-
       blue--;
       miningSpeed *= 2;
       alert("⚡ Mining Power Boosted!");
@@ -182,26 +206,6 @@
       localStorage.setItem(SPEED_KEY, miningSpeed);
       setBackgroundVideo('upgrade.mp4', false, 3000);
       updateKeyDisplay();
-    });
-
-    withdrawBtn.addEventListener('click', async () => {
-      if (!contract || !account) return alert("❌ Connect your wallet first.");
-      try {
-        await contract.methods.claim().send({
-          from: account,
-          value: web3.utils.toWei("0.00086", "ether")
-        });
-
-        alert(`💰 1 TIFFY Claimed!`);
-        setBackgroundVideo('withdraw.mp4', false, 3000);
-        balance = 0;
-        localStorage.setItem(COUNTER_KEY, 0);
-        localStorage.setItem(LAST_CLAIM_KEY, Date.now());
-        updateTiffyDisplay();
-      } catch (err) {
-        console.error(err);
-        alert("❌ Claim failed. Make sure cooldown passed and you have enough BNB.");
-      }
     });
 
     updateKeyDisplay();
