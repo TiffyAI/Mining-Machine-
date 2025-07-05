@@ -7,12 +7,9 @@ const core = new Core({
 
 const metadata = {
   name: 'TiffyAI',
-  description: 'Decentralized Wealth. TiffyAI is a hyper-intelligent Web3 ecosystem merging AI-powered tools, tokenized rewards, and gamified finance.',
+  description: 'Decentralized Web3 Wealth Mining.',
   url: 'https://tiffyai.github.io/Mining-Machine/',
-  icons: ['https://imagedelivery.net/_aTEfDRm7z3tKgu9JhfeKA/ddc202a2-e490-4cfe-2481-52e3ae276400/sm']
+  icons: ['https://tiffyai.github.io/logo.png'] // Replace if needed
 };
 
-export const walletKit = await WalletKit.init({
-  core,
-  metadata
-});
+export const walletKit = await WalletKit.init({ core, metadata });
