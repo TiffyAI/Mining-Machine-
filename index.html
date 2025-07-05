@@ -3,59 +3,47 @@
 <head>
   <meta charset="UTF-8" />
   <title>TiffyAI Miner</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
   <style>
     html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      font-family: 'Segoe UI', sans-serif;
-      background: #000;
-      color: #00ffe7;
+      margin: 0; padding: 0;
       overflow: hidden;
-    }
-
-    #fallbackBackground {
-      background: url('miner.jpg') no-repeat center center;
-      background-size: cover;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: -2;
-    }
-
-    #backgroundVideo {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      object-fit: cover;
-      z-index: -1;
-    }
-
-    .center {
-      position: relative;
-      z-index: 1;
+      height: 100%; width: 100%;
+      font-family: 'Segoe UI', sans-serif;
+      color: #00ffe7;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100%;
-      text-align: center;
+    }
+
+    #backgroundVideo {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 97vh;
+      object-fit: cover;
+      z-index: -1;
+    }
+
+    #fallbackBackground {
+      background-image: url('miner.jpg');
+      background-size: cover;
+      background-position: center;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 97%;
+      z-index: -2;
     }
 
     h1 {
       font-size: 2.5rem;
+      margin-top: 40px;
       text-shadow: 0 0 10px #00ffe7;
-      margin-bottom: 10px;
     }
 
     .info {
       font-size: 1.3rem;
-      margin: 5px 0;
+      margin: 10px 0;
       text-shadow: 0 0 5px #00ffe7;
     }
 
@@ -63,10 +51,10 @@
       background: #00ffe7;
       color: #000;
       border: none;
-      padding: 12px 25px;
+      padding: 15px 30px;
       margin: 10px;
-      font-size: 1rem;
-      border-radius: 10px;
+      font-size: 1.1rem;
+      border-radius: 12px;
       cursor: pointer;
       transition: 0.3s ease;
     }
@@ -75,9 +63,8 @@
       background: #00c6b0;
     }
 
-    button:disabled {
-      background: #444;
-      color: #888;
+    #withdrawBtn:disabled {
+      background: gray;
       cursor: not-allowed;
     }
   </style>
@@ -88,22 +75,20 @@
     <source src="mine.mp4" type="video/mp4" />
   </video>
 
-  <div class="center">
-    <h1>🛠 TiffyAI Miner</h1>
-    <div id="tiffyCounter" class="info">⛏️ 0.0000000 TIFFY</div>
-    <div id="blueKeys" class="info">🔵 Blue Keys: 0</div>
-    <div id="goldKeys" class="info">🟡 Gold Keys: 0</div>
+  <h1>🛠 TiffyAI Miner</h1>
+  <div id="tiffyCounter" class="info">⛏️ 0.0000000 TIFFY</div>
+  <div id="blueKeys" class="info">🔵 Blue Keys: 0</div>
+  <div id="goldKeys" class="info">🟡 Gold Keys: 0</div>
 
-    <button id="connectBtn">🔌 Connect Wallet</button>
-    <button id="withdrawBtn" disabled>💸 Withdraw</button>
-    <button id="boostBtn">⚡ Upgrade With Key</button>
-  </div>
+  <button id="connectBtn">🔌 Connect Wallet</button>
+  <button id="withdrawBtn" disabled>💸 Withdraw</button>
+  <button id="boostBtn">⚡ Upgrade With Key</button>
 
   <script type="module">
     import { walletKit } from './src/wallet.js';
 
     const CONTRACT_ADDRESS = "0xE488253DD6B4D31431142F1b7601C96f24Fb7dd5";
-    const ABI = [{ name: "claim", type: "function", inputs: [], outputs: [], stateMutability: "payable" }];
+    const ABI = [{ "type": "function", "name": "claim", "stateMutability": "payable", "inputs": [], "outputs": [] }];
 
     const COUNTER_KEY = 'tiffy_balance';
     const SPEED_KEY = 'tiffy_speed';
@@ -111,9 +96,9 @@
     const threshold = 1;
     const cooldown = 24 * 60 * 60 * 1000;
 
-    let web3, account, contract;
     let balance = parseFloat(localStorage.getItem(COUNTER_KEY)) || 0;
     let miningSpeed = parseFloat(localStorage.getItem(SPEED_KEY)) || 0.0000001;
+    let web3, account, contract;
 
     const tiffyCounter = document.getElementById('tiffyCounter');
     const blueKeysDisplay = document.getElementById('blueKeys');
@@ -137,26 +122,40 @@
       withdrawBtn.disabled = !canClaim;
     }
 
-    function mineLoop() {
+    function setBackgroundVideo(source, isLoop = true, duration = null) {
+      bgVideo.loop = isLoop;
+      bgVideo.src = source;
+      bgVideo.load();
+      bgVideo.play();
+      if (!isLoop && duration) {
+        setTimeout(() => setBackgroundVideo('mine.mp4', true), duration);
+      }
+    }
+
+    setInterval(() => {
       const lastClaim = localStorage.getItem(LAST_CLAIM_KEY);
       const cooldownPassed = !lastClaim || Date.now() - parseInt(lastClaim) > cooldown;
+
       if (balance < threshold && cooldownPassed) {
         balance += miningSpeed;
         localStorage.setItem(COUNTER_KEY, balance);
         updateTiffyDisplay();
       }
-    }
-
-    setInterval(mineLoop, 1000);
+    }, 1000);
 
     boostBtn.addEventListener('click', () => {
       let blue = parseInt(localStorage.getItem('tiffyBlueKeys')) || 0;
-      if (blue < 1) return alert("❌ Not enough Blue Keys.");
+      if (blue < 1) {
+        alert("❌ Not enough Blue Keys.");
+        return;
+      }
+
       blue--;
       miningSpeed *= 2;
+      alert("⚡ Mining Power Boosted!");
       localStorage.setItem('tiffyBlueKeys', blue);
       localStorage.setItem(SPEED_KEY, miningSpeed);
-      alert("⚡ Mining Power Boosted!");
+      setBackgroundVideo('upgrade.mp4', false, 3000);
       updateKeyDisplay();
     });
 
@@ -168,9 +167,9 @@
         account = accounts[0];
         contract = new web3.eth.Contract(ABI, CONTRACT_ADDRESS);
         connectBtn.innerText = `✅ ${account.slice(0, 6)}...Connected`;
-      } catch (e) {
-        console.error(e);
-        alert("❌ Wallet connection failed.");
+      } catch (err) {
+        console.error("Connection error:", err);
+        alert("❌ Failed to connect wallet.");
       }
     });
 
@@ -181,20 +180,22 @@
           from: account,
           value: web3.utils.toWei("0.00086", "ether")
         });
-        alert("💰 1 TIFFY Claimed!");
+
+        alert(`💰 1 TIFFY Claimed!`);
+        setBackgroundVideo('withdraw.mp4', false, 3000);
         balance = 0;
         localStorage.setItem(COUNTER_KEY, 0);
         localStorage.setItem(LAST_CLAIM_KEY, Date.now());
         updateTiffyDisplay();
       } catch (err) {
         console.error(err);
-        alert("❌ Claim failed.");
+        alert("❌ Claim failed. Make sure cooldown passed and you have enough BNB.");
       }
     });
 
     updateKeyDisplay();
     updateTiffyDisplay();
-    bgVideo.play();
+    setBackgroundVideo('mine.mp4', true);
   </script>
 </body>
 </html>
