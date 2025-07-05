@@ -1,35 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>TiffyAI Miner</title>
   <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
   <script src="https://unpkg.com/@walletconnect/web3-provider@1.7.8/dist/umd/index.min.js"></script>
   <script src="https://unpkg.com/web3modal"></script>
   <style>
     html, body {
-      margin: 0;
-      padding: 0;
+      margin: 0; padding: 0;
       overflow: hidden;
-      height: 100%;
-      width: 100%;
-    }
-
-    body {
+      height: 100%; width: 100%;
       font-family: 'Segoe UI', sans-serif;
       color: #00ffe7;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      z-index: 1;
     }
 
     #backgroundVideo {
       position: fixed;
       top: 0; left: 0;
-      width: 100vw;
-      height: 97vh;
+      width: 100vw; height: 97vh;
       object-fit: cover;
       z-index: -1;
     }
@@ -40,8 +33,7 @@
       background-position: center;
       position: fixed;
       top: 0; left: 0;
-      width: 100%;
-      height: 97%;
+      width: 100%; height: 97%;
       z-index: -2;
     }
 
@@ -51,8 +43,8 @@
       text-shadow: 0 0 10px #00ffe7;
     }
 
-    #tiffyCounter, #blueKeys, #goldKeys {
-      font-size: 1.4rem;
+    .info {
+      font-size: 1.3rem;
       margin: 10px 0;
       text-shadow: 0 0 5px #00ffe7;
     }
@@ -80,27 +72,23 @@
   </style>
 </head>
 <body>
-
   <div id="fallbackBackground"></div>
   <video id="backgroundVideo" autoplay muted loop playsinline>
     <source src="mine.mp4" type="video/mp4" />
-    Your browser does not support the video tag.
   </video>
 
   <h1>🛠 TiffyAI Miner</h1>
-  <div id="tiffyCounter">⛏️ 0.0000000 TIFFY</div>
-  <div id="blueKeys">🔵 Blue Keys: 0</div>
-  <div id="goldKeys">🟡 Gold Keys: 0</div>
+  <div id="tiffyCounter" class="info">⛏️ 0.0000000 TIFFY</div>
+  <div id="blueKeys" class="info">🔵 Blue Keys: 0</div>
+  <div id="goldKeys" class="info">🟡 Gold Keys: 0</div>
 
   <button id="connectBtn">🔌 Connect Wallet</button>
   <button id="withdrawBtn" disabled>💸 Withdraw</button>
-  <button id="boostBtn">⚡ Upgrade with Key</button>
+  <button id="boostBtn">⚡ Upgrade With Key</button>
 
   <script>
-    const TOKEN_CONTRACT = "0xE488253DD6B4D31431142F1b7601C96f24Fb7dd5";
-    const NFT_CONTRACT = "0xYourNFTContractHere"; // ← Replace with your actual Blue Key NFT contract
-    const ABI = [{"type":"function","name":"claim","stateMutability":"payable","inputs":[],"outputs":[]}];
-    const NFT_ABI = [{"constant":true,"inputs":[{"name":"owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"type":"function"}];
+    const CONTRACT_ADDRESS = "0xE488253DD6B4D31431142F1b7601C96f24Fb7dd5";
+    const ABI = [{ "type": "function", "name": "claim", "stateMutability": "payable", "inputs": [], "outputs": [] }];
 
     const COUNTER_KEY = 'tiffy_balance';
     const SPEED_KEY = 'tiffy_speed';
@@ -110,96 +98,97 @@
 
     let balance = parseFloat(localStorage.getItem(COUNTER_KEY)) || 0;
     let miningSpeed = parseFloat(localStorage.getItem(SPEED_KEY)) || 0.0000001;
-    let web3, account, contract, nftC;
+    let web3, account, contract;
 
-    const els = {
-      counter: document.getElementById('tiffyCounter'),
-      withdraw: document.getElementById('withdrawBtn'),
-      boost: document.getElementById('boostBtn'),
-      connect: document.getElementById('connectBtn'),
-      bgVideo: document.getElementById('backgroundVideo'),
-      blueKeys: document.getElementById('blueKeys'),
-      goldKeys: document.getElementById('goldKeys')
-    };
+    const tiffyCounter = document.getElementById('tiffyCounter');
+    const blueKeysDisplay = document.getElementById('blueKeys');
+    const goldKeysDisplay = document.getElementById('goldKeys');
+    const connectBtn = document.getElementById('connectBtn');
+    const withdrawBtn = document.getElementById('withdrawBtn');
+    const boostBtn = document.getElementById('boostBtn');
+    const bgVideo = document.getElementById('backgroundVideo');
 
-    function updateDisplay(blue = 0, gold = 0) {
-      els.counter.textContent = `⛏️ ${balance.toFixed(7)} TIFFY`;
+    function updateKeyDisplay() {
+      const blue = parseInt(localStorage.getItem('tiffyBlueKeys')) || 0;
+      const gold = parseInt(localStorage.getItem('gold')) || 0;
+      blueKeysDisplay.textContent = `🔵 Blue Keys: ${blue}`;
+      goldKeysDisplay.textContent = `🟡 Gold Keys: ${gold}`;
+    }
+
+    function updateTiffyDisplay() {
+      tiffyCounter.textContent = `⛏️ ${balance.toFixed(7)} TIFFY`;
       const lastClaim = localStorage.getItem(LAST_CLAIM_KEY);
       const canClaim = balance >= threshold && (!lastClaim || Date.now() - parseInt(lastClaim) > cooldown);
-      els.withdraw.disabled = !canClaim;
-      els.blueKeys.textContent = `🔵 Blue Keys: ${blue}`;
-      els.goldKeys.textContent = `🟡 Gold Keys: ${gold}`;
+      withdrawBtn.disabled = !canClaim;
     }
 
     function setBackgroundVideo(source, isLoop = true, duration = null) {
-      els.bgVideo.loop = isLoop;
-      els.bgVideo.src = source;
-      els.bgVideo.load();
-      els.bgVideo.play();
+      bgVideo.loop = isLoop;
+      bgVideo.src = source;
+      bgVideo.load();
+      bgVideo.play();
       if (!isLoop && duration) {
         setTimeout(() => setBackgroundVideo('mine.mp4', true), duration);
       }
     }
 
-    // Miner loop
     setInterval(() => {
       const lastClaim = localStorage.getItem(LAST_CLAIM_KEY);
       const cooldownPassed = !lastClaim || Date.now() - parseInt(lastClaim) > cooldown;
+
       if (balance < threshold && cooldownPassed) {
         balance += miningSpeed;
         localStorage.setItem(COUNTER_KEY, balance);
-        updateDisplay();
+        updateTiffyDisplay();
       }
     }, 1000);
 
-    // Boost Upgrade (requires 1 Blue Key)
-    els.boost.addEventListener('click', async () => {
-      if (!account || !nftC) return alert("Connect wallet first.");
+    boostBtn.addEventListener('click', () => {
+      let blue = parseInt(localStorage.getItem('tiffyBlueKeys')) || 0;
+      if (blue < 1) {
+        alert("❌ Not enough Blue Keys.");
+        return;
+      }
 
-      const blueKeys = parseInt(await nftC.methods.balanceOf(account).call());
-      if (blueKeys < 1) return alert("You need at least 1 Blue Key to upgrade!");
-
+      blue--;
       miningSpeed *= 2;
-      alert("⚡ Mining Power Doubled!");
+      alert("⚡ Mining Power Boosted!");
+      localStorage.setItem('tiffyBlueKeys', blue);
       localStorage.setItem(SPEED_KEY, miningSpeed);
       setBackgroundVideo('upgrade.mp4', false, 3000);
+      updateKeyDisplay();
     });
 
-    // Connect Wallet
-    els.connect.addEventListener('click', async () => {
+    connectBtn.addEventListener('click', async () => {
       const providerOptions = {
         walletconnect: {
           package: window.WalletConnectProvider.default,
           options: {
-            rpc: { 56: "https://bsc-dataseed.binance.org/" },
-            network: "binance"
+            rpc: { 56: "https://bsc-dataseed.binance.org/" }
           }
         }
       };
 
       const web3Modal = new window.Web3Modal.default({
-        cacheProvider: true,
+        cacheProvider: false,
         providerOptions
       });
 
-      const instance = await web3Modal.connect();
-      web3 = new Web3(instance);
-      const accounts = await web3.eth.getAccounts();
-      account = accounts[0];
-
-      contract = new web3.eth.Contract(ABI, TOKEN_CONTRACT);
-      nftC = new web3.eth.Contract(NFT_ABI, NFT_CONTRACT);
-
-      els.connect.innerText = `✅ ${account.slice(0, 6)}...Connected`;
-
-      const blue = parseInt(await nftC.methods.balanceOf(account).call());
-      const gold = Math.floor(blue / 10);
-      updateDisplay(blue, gold);
+      try {
+        const instance = await web3Modal.connect();
+        web3 = new Web3(instance);
+        const accounts = await web3.eth.getAccounts();
+        account = accounts[0];
+        connectBtn.innerText = `✅ ${account.slice(0, 6)}...Connected`;
+        contract = new web3.eth.Contract(ABI, CONTRACT_ADDRESS);
+      } catch (err) {
+        console.error("Connection error:", err);
+        alert("❌ Failed to connect wallet.");
+      }
     });
 
-    // Withdraw Claim
-    els.withdraw.addEventListener('click', async () => {
-      if (!contract || !account) return alert("❌ Please connect your wallet first.");
+    withdrawBtn.addEventListener('click', async () => {
+      if (!contract || !account) return alert("❌ Connect your wallet first.");
       try {
         await contract.methods.claim().send({
           from: account,
@@ -208,18 +197,19 @@
 
         alert(`💰 1 TIFFY Claimed!`);
         setBackgroundVideo('withdraw.mp4', false, 3000);
+        balance = 0;
         localStorage.setItem(COUNTER_KEY, 0);
         localStorage.setItem(LAST_CLAIM_KEY, Date.now());
-        balance = 0;
-        updateDisplay();
+        updateTiffyDisplay();
       } catch (err) {
         console.error(err);
-        alert("❌ Claim failed. Ensure cooldown passed and enough BNB.");
+        alert("❌ Claim failed. Make sure cooldown passed and you have enough BNB.");
       }
     });
 
+    updateKeyDisplay();
+    updateTiffyDisplay();
     setBackgroundVideo('mine.mp4', true);
-    updateDisplay();
   </script>
 </body>
 </html>
