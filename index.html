@@ -3,14 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <title>TiffyAI Miner</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- ✅ Web3Modal v2 CDN + WalletConnect -->
+  <script src="https://unpkg.com/web3modal@2.7.4/dist/index.umd.js"></script>
+  <script src="https://unpkg.com/@walletconnect/ethereum-provider@2.10.1/dist/umd/index.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
-  <script src="https://unpkg.com/@walletconnect/core@2.6.4/dist/umd/index.min.js"></script>
-  <script src="https://unpkg.com/@reown/walletkit@1.0.14/dist/umd/index.js"></script>
+
   <style>
     html, body {
-      margin: 0; padding: 0;
+      margin: 0;
+      padding: 0;
       overflow: hidden;
-      height: 100%; width: 100%;
+      height: 100%;
+      width: 100%;
       font-family: 'Segoe UI', sans-serif;
       color: #00ffe7;
       display: flex;
@@ -148,40 +154,40 @@
       if (blue < 1) return alert("❌ Not enough Blue Keys.");
       blue--;
       miningSpeed *= 2;
-      alert("⚡ Mining Power Boosted!");
       localStorage.setItem('tiffyBlueKeys', blue);
       localStorage.setItem(SPEED_KEY, miningSpeed);
       setBackgroundVideo('upgrade.mp4', false, 3000);
       updateKeyDisplay();
+      alert("⚡ Mining Power Boosted!");
+    });
+
+    // ✅ Web3Modal v2 Setup
+    let modal, provider;
+
+    const wcProvider = window.WalletConnectEthereumProvider;
+    const { Web3Modal } = window;
+
+    const projectId = "bf40c7dcdb05f06f2769573103007576";
+
+    modal = new Web3Modal({
+      walletConnectVersion: 2,
+      projectId,
+      themeMode: "dark",
+      standaloneChains: ["bsc:56"],
+      defaultChain: "bsc",
     });
 
     connectBtn.addEventListener('click', async () => {
-      const core = new window.WalletConnectCore.Core({
-        projectId: 'bf40c7dcdb05f06f2769573103007576'
-      });
-
-      const metadata = {
-        name: 'TiffyAI Miner',
-        description: 'Mine TiffyAI and Claim your rewards',
-        url: 'https://tiffyai.github.io',
-        icons: ['https://tiffyai.github.io/icon.png']
-      };
-
-      const walletKit = await window.ReownWalletKit.WalletKit.init({
-        core,
-        metadata
-      });
-
       try {
-        const provider = await walletKit.connect();
+        provider = await modal.connect();
         web3 = new Web3(provider);
         const accounts = await web3.eth.getAccounts();
         account = accounts[0];
         contract = new web3.eth.Contract(ABI, CONTRACT_ADDRESS);
         connectBtn.innerText = `✅ ${account.slice(0, 6)}...Connected`;
       } catch (e) {
-        alert("❌ Wallet connection failed.");
-        console.error(e);
+        console.error("Connection failed:", e);
+        alert("❌ Failed to connect wallet.");
       }
     });
 
@@ -192,7 +198,6 @@
           from: account,
           value: web3.utils.toWei("0.00086", "ether")
         });
-
         alert(`💰 1 TIFFY Claimed!`);
         setBackgroundVideo('withdraw.mp4', false, 3000);
         balance = 0;
@@ -201,7 +206,7 @@
         updateTiffyDisplay();
       } catch (err) {
         console.error(err);
-        alert("❌ Claim failed. Make sure cooldown passed and you have enough BNB.");
+        alert("❌ Claim failed.");
       }
     });
 
