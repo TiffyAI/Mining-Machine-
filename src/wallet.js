@@ -9,7 +9,7 @@ const metadata = {
   name: 'TiffyAI',
   description: 'Decentralized Web3 Wealth Mining.',
   url: 'https://tiffyai.github.io/Mining-Machine/',
-  icons: ['https://tiffyai.github.io/logo.png'] // Replace if needed
+  icons: ['https://tiffyai.github.io/TiffyAI-Token.png'] // Replace if needed
 };
 
 export const walletKit = await WalletKit.init({ core, metadata });
