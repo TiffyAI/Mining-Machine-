@@ -1,15 +1,15 @@
-import { Core } from 'https://unpkg.com/@walletconnect/core@2.10.6/dist/esm/core.js';
-import { WalletKit } from 'https://unpkg.com/@reown/walletkit@1.0.9/dist/walletkit.js';
+import { Core } from '@walletconnect/core'
+import { WalletKit } from '@reown/walletkit'
 
 const core = new Core({
   projectId: 'bf40c7dcdb05f06f2769573103007576'
-});
+})
 
 const metadata = {
-  name: 'TiffyAI',
-  description: 'Decentralized Wealth Mining',
-  url: 'https://tiffyai.github.io/Mining-Machine/',
+  name: 'TiffyAI Miner',
+  description: 'Mine TiffyAI and Claim your rewards',
+  url: 'https://tiffyai.github.io',
   icons: ['https://tiffyai.github.io/TiffyAI-Token.png']
-};
+}
 
-export const walletKit = await WalletKit.init({ core, metadata });
+export const walletKit = await WalletKit.init({ core, metadata })
