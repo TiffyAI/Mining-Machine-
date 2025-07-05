@@ -1,32 +1,19 @@
-import { WalletKit } from "https://esm.sh/@reown/walletkit@latest";
+import { Core } from '@walletconnect/core'
+import { WalletKit } from '@reown/walletkit'
 
-const walletKit = new WalletKit({
-  chains: [
-    {
-      id: 56,
-      name: "BNB Smart Chain",
-      rpcUrls: ["https://bsc-dataseed.binance.org/"],
-      nativeCurrency: { name: "BNB", symbol: "BNB", decimals: 18 }
-    }
-  ]
-});
+const core = new Core({
+  projectId: 'bf40c7dcdb05f06f2769573103007576' // your actual WalletConnect project ID
+})
 
-const connectBtn = document.getElementById("connectBtn");
+const metadata = {
+  name: 'TiffyAI',
+  description: `Decentralized Wealth.
+TiffyAI is a hyper-intelligent Web3 ecosystem merging AI-powered tools, tokenized rewards, and gamified finance.`,
+  url: 'https://tiffyai.github.io', // this must match your live domain
+  icons: ['https://imagedelivery.net/_aTEfDRm7z3tKgu9JhfeKA/ddc202a2-e490-4cfe-2481-52e3ae276400/sm']
+}
 
-walletKit.on("connected", ({ address, provider }) => {
-  console.log("Connected:", address);
-  connectBtn.innerText = `✅ ${address.slice(0, 6)}...${address.slice(-4)}`;
-  window.web3 = new Web3(provider);
-  window.account = address;
-  window.contract = new web3.eth.Contract([
-    { "type": "function", "name": "claim", "stateMutability": "payable", "inputs": [], "outputs": [] }
-  ], "0xE488253DD6B4D31431142F1b7601C96f24Fb7dd5");
-});
-
-walletKit.on("disconnected", () => {
-  connectBtn.innerText = "🔌 Connect Wallet";
-});
-
-connectBtn.addEventListener("click", async () => {
-  await walletKit.connect();
-});
+export const walletKit = await WalletKit.init({
+  core,
+  metadata
+})
