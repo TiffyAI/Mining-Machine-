@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>TiffyAI Miner</title>
+  <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+  <script src="https://unpkg.com/@walletconnect/web3-provider@1.7.8/dist/umd/index.min.js"></script>
+  <script src="https://unpkg.com/web3modal"></script>
+  <style>
+    html, body { margin:0; padding:0; overflow:hidden; height:100%; width:100%; }
+    body { font-family:'Segoe UI',sans-serif; color:#00ffe7;
+      display:flex; flex-direction:column; align-items:center; justify-content:center; }
+    #backgroundVideo, #fallbackBackground { position:fixed; top:0; left:0; width:100vw; height:97vh; object-fit:cover; }
+    #fallbackBackground { background:url('miner.jpg') center/cover no-repeat; z-index:-2; }
+    #backgroundVideo { z-index:-1; }
+    h1 { font-size:2.5rem; text-shadow:0 0 10px #00ffe7; margin:1rem 0; }
+    .status { margin:0.5rem; font-size:1.2rem; text-shadow:0 0 5px #00ffe7; }
+    button { background:#00ffe7; color:#000; border:none; padding:0.8rem 1.5rem; margin:0.5rem;
+      font-size:1rem; border-radius:8px; cursor:pointer; transition:0.3s; }
+    button:hover { background:#00c6b0; }
+    button:disabled { background:gray; cursor:not-allowed; }
+  </style>
+</head>
+<body>
+
+  <div id="fallbackBackground"></div>
+  <video id="backgroundVideo" autoplay muted loop playsinline>
+    <source src="mine.mp4" type="video/mp4">
+  </video>
+
+  <h1>🛠 TiffyAI Miner</h1>
+  <div id="tiffyCounter" class="status">⛏️ 0.0000000 TIFFY</div>
+  <div id="blueKeys"   class="status">🔑 Blue Keys: 0</div>
+  <div id="goldKeys"   class="status">🥇 Gold Keys: 0</div>
+
+  <button id="connectBtn">🔌 Connect Wallet</button>
+  <button id="withdrawBtn" disabled>💸 Claim 1 TIFFY</button>
+  <button id="boostBtn">⚡ Boost Power</button>
+
+  <script>
+  (async()=>{
+
+    const CONTRACT_ADDRESS = "0xE488253DD6B4D31431142F1b7601C96f24Fb7dd5";
+    // minimal ABI entries
+    const TOKEN_ABI = [
+      { "constant":true,"inputs":[],"name":"boostNFT","outputs":[{"name":"","type":"address"}],"stateMutability":"view","type":"function" },
+      { "constant":false,"inputs":[],"name":"claim","outputs":[],"stateMutability":"payable","type":"function" }
+    ];
+    const NFT_ABI = [
+      { "constant":true,"inputs":[{"name":"owner","type":"address"}],"name":"balanceOf",
+        "outputs":[{"name":"","type":"uint256"}],"stateMutability":"view","type":"function" }
+    ];
+
+    const COUNTER_KEY     = 'tiffy_balance';
+    const SPEED_KEY       = 'tiffy_speed';
+    const LAST_CLAIM_KEY  = 'tiffy_last_claim';
+    const THRESHOLD       = 1;                      // 1 TIFFY
+    const COOLDOWN_MS     = 24*60*60*1000;          // 24h
+
+    let balance      = parseFloat(localStorage.getItem(COUNTER_KEY)) || 0;
+    let miningSpeed  = parseFloat(localStorage.getItem(SPEED_KEY))   || 0.0000001;
+    let web3, account, tokenContract, nftContract;
+
+    // elements
+    const counterEl    = document.getElementById('tiffyCounter');
+    const blueKeysEl   = document.getElementById('blueKeys');
+    const goldKeysEl   = document.getElementById('goldKeys');
+    const connectBtn   = document.getElementById('connectBtn');
+    const withdrawBtn  = document.getElementById('withdrawBtn');
+    const boostBtn     = document.getElementById('boostBtn');
+    const bgVideo      = document.getElementById('backgroundVideo');
+
+    function updateDisplay(){
+      counterEl.textContent = `⛏️ ${balance.toFixed(7)} TIFFY`;
+      // cooldown & threshold
+      const last = parseInt(localStorage.getItem(LAST_CLAIM_KEY) || '0');
+      withdrawBtn.disabled = !(balance>=THRESHOLD && (Date.now()-last>COOLDOWN_MS));
+    }
+
+    function setBackground(src, loop=true, duration=null){
+      bgVideo.loop = loop;
+      bgVideo.src = src;
+      bgVideo.load(); bgVideo.play();
+      if(!loop && duration) setTimeout(()=>setBackground('mine.mp4',true), duration);
+    }
+
+    // mining tick
+    setInterval(()=>{
+      const last = parseInt(localStorage.getItem(LAST_CLAIM_KEY)||'0');
+      if(balance<THRESHOLD && Date.now()-last>COOLDOWN_MS){
+        balance += miningSpeed;
+        localStorage.setItem(COUNTER_KEY, balance);
+        updateDisplay();
+      }
+    },1000);
+
+    // boost = double speed
+    boostBtn.onclick = ()=>{
+      miningSpeed *= 2;
+      localStorage.setItem(SPEED_KEY, miningSpeed);
+      alert('⚡ Mining Power Upgraded!');
+      setBackground('upgrade.mp4',false,3000);
+    };
+
+    // connect wallet
+    connectBtn.onclick = async ()=>{
+      const providerOptions = {
+        walletconnect: {
+          package: window.WalletConnectProvider.default,
+          options: { rpc:{56:'https://bsc-dataseed.binance.org/'}, network:'binance' }
+        }
+      };
+      const modal = new window.Web3Modal.default({cacheProvider:true,providerOptions});
+      const instance = await modal.connect();
+      web3 = new Web3(instance);
+      [account] = await web3.eth.getAccounts();
+      tokenContract = new web3.eth.Contract(TOKEN_ABI, CONTRACT_ADDRESS);
+
+      // fetch boostNFT address & instantiate
+      const nftAddr = await tokenContract.methods.boostNFT().call();
+      nftContract = new web3.eth.Contract(NFT_ABI, nftAddr);
+
+      connectBtn.textContent = `✅ ${account.slice(0,6)}…Connected`;
+
+      // read keys
+      const blue = parseInt(await nftContract.methods.balanceOf(account).call());
+      const gold = Math.floor(blue/10);
+
+      blueKeysEl.textContent = `🔑 Blue Keys: ${blue}`;
+      goldKeysEl.textContent = `🥇 Gold Keys: ${gold}`;
+    };
+
+    // withdraw = claim()
+    withdrawBtn.onclick = async ()=>{
+      if(!tokenContract||!account) return alert('❌ Connect first');
+      try {
+        await tokenContract.methods.claim().send({
+          from: account,
+          value: web3.utils.toWei('0.00086','ether')  // adjust fee
+        });
+        alert('💰 You claimed 1 TIFFY');
+        localStorage.setItem(COUNTER_KEY,0);
+        localStorage.setItem(LAST_CLAIM_KEY, Date.now());
+        balance = 0;
+        updateDisplay();
+        setBackground('withdraw.mp4',false,3000);
+      } catch(e){
+        console.error(e);
+        alert('❌ Claim failed – check BNB balance & cooldown');
+      }
+    };
+
+    // init
+    updateDisplay();
+    setBackground('mine.mp4',true);
+
+  })();
+  </script>
+
+</body>
+</html>
