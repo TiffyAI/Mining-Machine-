@@ -168,7 +168,7 @@
           alert("❌ Wallet connection rejected.");
         }
       } else {
-        alert("❌ No wallet found. Please install MetaMask or use a Web3 browser.");
+        alert("❌ You need to copy this link in your browser and open it in MetaMask DApp or use a Web3 browser to mine TIFFY.");
       }
     });
 
@@ -179,14 +179,14 @@
           from: account,
           value: web3.utils.toWei("0.00086", "ether")
         });
-        alert(`💰 1 TIFFY Claimed!`);
+        alert(`💰 1 TIFFY Successfully Claimed!`);
         setBackgroundVideo('withdraw.mp4', false, 3000);
         balance = 0;
         localStorage.setItem(COUNTER_KEY, 0);
         localStorage.setItem(LAST_CLAIM_KEY, Date.now());
         updateTiffyDisplay();
       } catch (err) {
-        alert("❌ Claim failed. Make sure cooldown passed and you have enough BNB.");
+        alert("❌ Claim failed. Make sure cooldown passed and you have enough BNB for gas.");
         console.error(err);
       }
     });
