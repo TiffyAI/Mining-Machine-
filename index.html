@@ -3,27 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <title>TiffyAI Miner</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- ✅ Web3Modal v2 CDN + WalletConnect -->
-  <script src="https://unpkg.com/web3modal@2.7.4/dist/index.umd.js"></script>
-  <script src="https://unpkg.com/@walletconnect/ethereum-provider@2.10.1/dist/umd/index.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
-
+  <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/web3modal@2.2.0/dist/index.js"></script>
   <style>
     html, body {
-      margin: 0;
-      padding: 0;
+      margin: 0; padding: 0;
       overflow: hidden;
-      height: 100%;
-      width: 100%;
+      height: 100%; width: 100%;
       font-family: 'Segoe UI', sans-serif;
       color: #00ffe7;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: black;
     }
 
     #backgroundVideo {
@@ -154,40 +147,28 @@
       if (blue < 1) return alert("❌ Not enough Blue Keys.");
       blue--;
       miningSpeed *= 2;
+      alert("⚡ Mining Power Boosted!");
       localStorage.setItem('tiffyBlueKeys', blue);
       localStorage.setItem(SPEED_KEY, miningSpeed);
       setBackgroundVideo('upgrade.mp4', false, 3000);
       updateKeyDisplay();
-      alert("⚡ Mining Power Boosted!");
     });
 
-    // ✅ Web3Modal v2 Setup
-    let modal, provider;
-
-    const wcProvider = window.WalletConnectEthereumProvider;
-    const { Web3Modal } = window;
-
-    const projectId = "bf40c7dcdb05f06f2769573103007576";
-
-    modal = new Web3Modal({
-      walletConnectVersion: 2,
-      projectId,
-      themeMode: "dark",
-      standaloneChains: ["bsc:56"],
-      defaultChain: "bsc",
-    });
-
+    // Web3Modal v2 Basic Injected Provider Support
     connectBtn.addEventListener('click', async () => {
-      try {
-        provider = await modal.connect();
-        web3 = new Web3(provider);
-        const accounts = await web3.eth.getAccounts();
-        account = accounts[0];
-        contract = new web3.eth.Contract(ABI, CONTRACT_ADDRESS);
-        connectBtn.innerText = `✅ ${account.slice(0, 6)}...Connected`;
-      } catch (e) {
-        console.error("Connection failed:", e);
-        alert("❌ Failed to connect wallet.");
+      if (window.ethereum) {
+        try {
+          await window.ethereum.request({ method: 'eth_requestAccounts' });
+          web3 = new Web3(window.ethereum);
+          const accounts = await web3.eth.getAccounts();
+          account = accounts[0];
+          contract = new web3.eth.Contract(ABI, CONTRACT_ADDRESS);
+          connectBtn.innerText = `✅ ${account.slice(0, 6)}...Connected`;
+        } catch (err) {
+          alert("❌ Wallet connection rejected.");
+        }
+      } else {
+        alert("❌ No wallet found. Please install MetaMask or use a Web3 browser.");
       }
     });
 
@@ -205,8 +186,8 @@
         localStorage.setItem(LAST_CLAIM_KEY, Date.now());
         updateTiffyDisplay();
       } catch (err) {
+        alert("❌ Claim failed. Make sure cooldown passed and you have enough BNB.");
         console.error(err);
-        alert("❌ Claim failed.");
       }
     });
 
@@ -215,4 +196,4 @@
     setBackgroundVideo('mine.mp4', true);
   </script>
 </body>
-</html>
+</html
