@@ -8,7 +8,7 @@ const core = new Core({
 const metadata = {
   name: 'TiffyAI Miner',
   description: 'Mine TiffyAI and Claim your rewards',
-  url: 'https://tiffyai.github.io',
+  url: 'https://tiffyai.github.io/Mining-Machine-/',
   icons: ['https://tiffyai.github.io/TiffyAI-Token.png']
 }
 
