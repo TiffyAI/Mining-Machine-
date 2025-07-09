@@ -11,9 +11,9 @@
     "@reown/walletkit": "^1.0.0",
     "@walletconnect/core": "^2.0.0",
     "@walletconnect/utils": "^2.0.0",
-    "web3": "^1.10.0"
+    "web3": "^4.16.0"
   },
   "devDependencies": {
-    "vite": "^5.0.0"
+    "vite": "^7.0.2"
   }
 }
