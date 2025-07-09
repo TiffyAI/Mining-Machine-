@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>TiffyAI Miner</title>
+  <style>
+    html, body {
+      margin: 0; padding: 0;
+      overflow: hidden;
+      height: 100%; width: 100%;
+      font-family: 'Segoe UI', sans-serif;
+      color: #00ffe7;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #backgroundVideo {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 97vh;
+      object-fit: cover;
+      z-index: -1;
+    }
+
+    #fallbackBackground {
+      background-image: url('/Mining-Machine-/assets/miner-B4FnXq_M.jpg');
+      background-size: cover;
+      background-position: center;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 97%;
+      z-index: -2;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-top: 40px;
+      text-shadow: 0 0 10px #00ffe7;
+    }
+
+    .info {
+      font-size: 1.3rem;
+      margin: 10px 0;
+      text-shadow: 0 0 5px #00ffe7;
+    }
+
+    button {
+      background: #00ffe7;
+      color: #000;
+      border: none;
+      padding: 15px 30px;
+      margin: 10px;
+      font-size: 1.1rem;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+
+    button:hover {
+      background: #00c6b0;
+    }
+
+    #withdrawBtn:disabled {
+      background: gray;
+      cursor: not-allowed;
+    }
+  </style>
+  <script type="module" crossorigin src="/Mining-Machine-/assets/main-BVbEk9i6.js"></script>
+</head>
+<body>
+  <div id="fallbackBackground"></div>
+  <video id="backgroundVideo" autoplay muted loop playsinline>
+    <source src="/Mining-Machine-/assets/mine-BP64jN9u.mp4" type="video/mp4" />
+  </video>
+
+  <h1>🛠 TiffyAI Miner</h1>
+  <div id="tiffyCounter" class="info">⛏️ 0.0000000 TIFFY</div>
+  <div id="blueKeys" class="info">🔵 Blue Keys: 0</div>
+  <div id="goldKeys" class="info">🟡 Gold Keys: 0</div>
+
+  <button id="connectBtn">🔌 Connect Wallet</button>
+  <button id="withdrawBtn" disabled>💸 Withdraw</button>
+  <button id="boostBtn">⚡ Upgrade With Key</button>
+
+</body>
+</html>
