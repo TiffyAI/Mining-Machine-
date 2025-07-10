@@ -1,3 +1,5 @@
+﻿// src/wallet.js
+
 import { Core } from '@walletconnect/core'
 import { WalletKit } from '@reown/walletkit'
 
@@ -7,9 +9,14 @@ const core = new Core({
 
 const metadata = {
   name: 'TiffyAI Miner',
-  description: 'Mine TiffyAI and Claim your rewards',
+  description: 'Mine and claim rewards securely',
   url: 'https://tiffyai.github.io/Mining-Machine-/',
   icons: ['https://tiffyai.github.io/TiffyAI-Token.png']
-}
+}; // <- ✅ FIXED: This semicolon was missing before
 
-export const walletKit = await WalletKit.init({ core, metadata })
+export async function connectWallet() {
+  const walletKit = await WalletKit.init({ core, metadata });
+  const provider = await walletKit.getProvider();
+  const accounts = await provider.request({ method: 'eth_requestAccounts' });
+  return { provider, accounts };
+}

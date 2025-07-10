@@ -1,0 +1,7 @@
+﻿node_modules/
+dist/assets/*.js.map
+dist/assets/*.js
+dist/assets/*.css
+*.log
+Thumbs.db
+package-lock.json

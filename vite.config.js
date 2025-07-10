@@ -1,9 +1,9 @@
-// vite.config.js
 import { defineConfig } from 'vite'
 
 export default defineConfig({
-  base: './',
+  base: '/Mining-Machine-/', // very important for GitHub Pages
   build: {
-    outDir: 'dist'
+    outDir: 'dist',
+    assetsInclude: ['**/*.mp4', '**/*.jpg']
   }
 })
