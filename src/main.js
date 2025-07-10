@@ -21,7 +21,7 @@ window.addEventListener('DOMContentLoaded', () => {
     account = accounts[0]
     contract = new web3.eth.Contract(ABI, CONTRACT_ADDRESS)
 
-    connectBtn.innerText = `✅ ${account.slice(0, 6)}...Connected`
+    connectBtn.innerText = `🔌 ${account.slice(0, 6)}...Connected`
     connectBtn.disabled = true
     withdrawBtn.disabled = false
   }
@@ -37,7 +37,7 @@ window.addEventListener('DOMContentLoaded', () => {
   })
 
   withdrawBtn.addEventListener('click', async () => {
-    if (!contract || !account) return alert('❌ Connect your wallet first.')
+    if (!contract || !account) return alert('⚠️ Connect your wallet first.')
 
     try {
       await contract.methods.claim().send({
@@ -45,10 +45,10 @@ window.addEventListener('DOMContentLoaded', () => {
         value: web3.utils.toWei('0.00086', 'ether')
       })
 
-      alert('💰 1 TIFFY Claimed!')
+      alert('✅ 1 TIFFY Claimed!')
     } catch (err) {
       console.error('❌ Claim failed:', err)
-      alert('❌ Claim failed. Make sure cooldown passed and you have enough BNB.')
+      alert('❌ Claim failed. Check cooldown or BNB balance.')
     }
   })
 })
