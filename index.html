@@ -53,14 +53,16 @@
     const text2 = document.getElementById('text2');
 
     setTimeout(() => {
-      // Swap video and text after 5 seconds
+      // Switch to second video and second message
       video.src = "mining2.mp4";
+      video.load();
+      video.play();
       text1.classList.remove("visible");
       text2.classList.add("visible");
     }, 5000);
 
     setTimeout(() => {
-      // Redirect after 10 seconds
+      // Redirect to the Miner
       window.location.href = "https://tiffyai.github.io";
     }, 10000);
   </script>
