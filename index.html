@@ -22,7 +22,7 @@
       z-index: -1;
     }
     .message {
-      position: fixed;
+      position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
@@ -44,7 +44,7 @@
     <source src="mining1.mp4" type="video/mp4" />
   </video>
 
-  <div id="text1" class="message visible">You have just entered the<br>TIFFY GOLD MINING Facility.</div>
+  <div id="text1" class="message">You have just entered the<br>TIFFY GOLD MINING Facility.</div>
   <div id="text2" class="message">Activate Your Personal Miner at No Cost!<br>Speed-Up Mining Speed With Blue Keys!<br>Withdraw when 1 TIFFY is reached.</div>
 
   <script>
@@ -52,17 +52,23 @@
     const text1 = document.getElementById('text1');
     const text2 = document.getElementById('text2');
 
+    // When mining1.mp4 starts playing, show Text 1
+    video.addEventListener('play', () => {
+      text1.classList.add('visible');
+    });
+
+    // After 5 seconds: switch video and text
     setTimeout(() => {
-      // Switch to second video and second message
+      text1.classList.remove('visible');
+      video.pause();
       video.src = "mining2.mp4";
       video.load();
       video.play();
-      text1.classList.remove("visible");
-      text2.classList.add("visible");
+      text2.classList.add('visible');
     }, 5000);
 
+    // After 10 seconds: redirect
     setTimeout(() => {
-      // Redirect to the Miner
       window.location.href = "https://tiffyai.github.io";
     }, 10000);
   </script>
