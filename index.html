@@ -14,6 +14,7 @@
       width: 100vw;
       font-family: 'Segoe UI', sans-serif;
     }
+
     video {
       position: fixed;
       top: 0; left: 0;
@@ -22,6 +23,7 @@
       object-fit: cover;
       z-index: -1;
     }
+
     .message {
       position: fixed;
       top: 50%;
@@ -34,6 +36,7 @@
       opacity: 0;
       transition: opacity 1s ease-in-out;
     }
+
     .visible {
       opacity: 1;
     }
@@ -42,41 +45,39 @@
 <body>
 
   <video id="bgVideo" autoplay muted playsinline>
-    <source src="mining1.mp4" type="video/mp4">
+    <source src="mining1.mp4" type="video/mp4" />
   </video>
 
   <div id="text1" class="message">You have just entered the<br>TIFFY GOLD MINING Facility.</div>
-  <div id="text2" class="message">Activate Your Personal Miner at No Cost!<br>Speed-Up Mining Speed With Blue Keys!<br>Withdraw when 1 TIFFY is reached.</div>
+  <div id="text2" class="message">Activate Your Personal Miner at No Cost!<br>Speed-Up Mining With Blue Keys!<br>Withdraw when 1 TIFFY is reached.</div>
 
   <script>
     const video = document.getElementById('bgVideo');
     const text1 = document.getElementById('text1');
     const text2 = document.getElementById('text2');
 
-    // Show Text 1 only after video starts playing
-    video.addEventListener('playing', () => {
+    // ✨ 2 seconds after video starts, show text1
+    setTimeout(() => {
       text1.classList.add('visible');
-    });
+    }, 2000);
 
-    // After 5 seconds, transition to second video and text
+    // ⏳ At 5s: hide text1, switch to video 2
     setTimeout(() => {
       text1.classList.remove('visible');
-      text2.classList.remove('visible'); // just in case
-
       video.src = "mining2.mp4";
       video.load();
       video.play();
-
-      // Small delay to give video a second to play
-      setTimeout(() => {
-        text2.classList.add('visible');
-      }, 500);
     }, 5000);
 
-    // After 10 seconds total, redirect
+    // ✨ At 6s: show text2
+    setTimeout(() => {
+      text2.classList.add('visible');
+    }, 6000);
+
+    // 🚀 At 11s: redirect to the miner page
     setTimeout(() => {
       window.location.href = "https://tiffyai.github.io";
-    }, 10000);
+    }, 11000);
   </script>
 
 </body>
