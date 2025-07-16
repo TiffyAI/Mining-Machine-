@@ -3,16 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <title>TIFFY GOLD MINING Facility</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     html, body {
       margin: 0;
       padding: 0;
-      overflow: hidden;
       background: black;
+      overflow: hidden;
       height: 100vh;
+      width: 100vw;
       font-family: 'Segoe UI', sans-serif;
     }
+
     video {
       position: fixed;
       top: 0; left: 0;
@@ -21,6 +23,7 @@
       object-fit: cover;
       z-index: -1;
     }
+
     .message {
       position: fixed;
       top: 50%;
@@ -28,11 +31,12 @@
       transform: translate(-50%, -50%);
       color: #00ffe7;
       font-size: 2rem;
-      text-shadow: 0 0 10px #00ffe7;
       text-align: center;
+      text-shadow: 0 0 12px #00ffe7;
       opacity: 0;
       transition: opacity 1s ease-in-out;
     }
+
     .visible {
       opacity: 1;
     }
@@ -44,25 +48,36 @@
     <source src="mining1.mp4" type="video/mp4" />
   </video>
 
-  <div id="text1" class="message visible">You have just entered the<br>TIFFY GOLD MINING Facility.</div>
-  <div id="text2" class="message">Activate Your Personal Miner at No Cost!<br>Speed-Up Mining Speed With Blue Keys!<br>Withdraw when 1 TIFFY is reached.</div>
+  <div id="text1" class="message">You have just entered the<br>TIFFY GOLD MINING Facility.</div>
+  <div id="text2" class="message">Activate Your Personal Miner at No Cost!<br>Speed-Up Mining With Blue Keys!<br>Withdraw when 1 TIFFY is reached.</div>
 
   <script>
     const video = document.getElementById('bgVideo');
     const text1 = document.getElementById('text1');
     const text2 = document.getElementById('text2');
 
+    // ✨ 2 seconds after video starts, show text1
     setTimeout(() => {
-      // Swap video and text after 5 seconds
+      text1.classList.add('visible');
+    }, 2000);
+
+    // ⏳ At 5s: hide text1, switch to video 2
+    setTimeout(() => {
+      text1.classList.remove('visible');
       video.src = "mining2.mp4";
-      text1.classList.remove("visible");
-      text2.classList.add("visible");
+      video.load();
+      video.play();
     }, 5000);
 
+    // ✨ At 6s: show text2
     setTimeout(() => {
-      // Redirect after 10 seconds
+      text2.classList.add('visible');
+    }, 6000);
+
+    // 🚀 At 11s: redirect to the miner page
+    setTimeout(() => {
       window.location.href = "https://tiffyai.github.io";
-    }, 10000);
+    }, 11000);
   </script>
 
 </body>
