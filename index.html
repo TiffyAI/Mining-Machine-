@@ -3,14 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <title>TIFFY GOLD MINING Facility</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     html, body {
       margin: 0;
       padding: 0;
-      overflow: hidden;
       background: black;
+      overflow: hidden;
       height: 100vh;
+      width: 100vw;
       font-family: 'Segoe UI', sans-serif;
     }
     video {
@@ -22,14 +23,14 @@
       z-index: -1;
     }
     .message {
-      position: absolute;
+      position: fixed;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
       color: #00ffe7;
       font-size: 2rem;
-      text-shadow: 0 0 10px #00ffe7;
       text-align: center;
+      text-shadow: 0 0 12px #00ffe7;
       opacity: 0;
       transition: opacity 1s ease-in-out;
     }
@@ -41,7 +42,7 @@
 <body>
 
   <video id="bgVideo" autoplay muted playsinline>
-    <source src="mining1.mp4" type="video/mp4" />
+    <source src="mining1.mp4" type="video/mp4">
   </video>
 
   <div id="text1" class="message">You have just entered the<br>TIFFY GOLD MINING Facility.</div>
@@ -52,22 +53,27 @@
     const text1 = document.getElementById('text1');
     const text2 = document.getElementById('text2');
 
-    // When mining1.mp4 starts playing, show Text 1
-    video.addEventListener('play', () => {
+    // Show Text 1 only after video starts playing
+    video.addEventListener('playing', () => {
       text1.classList.add('visible');
     });
 
-    // After 5 seconds: switch video and text
+    // After 5 seconds, transition to second video and text
     setTimeout(() => {
       text1.classList.remove('visible');
-      video.pause();
+      text2.classList.remove('visible'); // just in case
+
       video.src = "mining2.mp4";
       video.load();
       video.play();
-      text2.classList.add('visible');
+
+      // Small delay to give video a second to play
+      setTimeout(() => {
+        text2.classList.add('visible');
+      }, 500);
     }, 5000);
 
-    // After 10 seconds: redirect
+    // After 10 seconds total, redirect
     setTimeout(() => {
       window.location.href = "https://tiffyai.github.io";
     }, 10000);
